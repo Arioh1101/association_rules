@@ -41,7 +41,7 @@ def get_association_rules(data,
                           clust=True,
                           count_clusters=3):
     data = data.groupby(group_by, observed=False)[form_list_by].apply(list).values.tolist()
-    # pprint(data)
+    #pprint(data)
 
     # Apply apriori algorithm
     rules = apriori(data, min_support=min_support, min_confidence=min_confidence, min_lift=min_lift, min_length=2)
@@ -98,8 +98,8 @@ for item in frequent_itemsets.itertuples():
 get_association_rules(transactions, 'Категория', clust=True)
 # Всего одно правило - можем просто упомянуть его - а можем и убрать нахер
 
-### trying with category - "Цена"   ###
-get_association_rules(transactions, 'Цена', clust=True)
+## trying with category - "Цена"   ###
+#get_association_rules(transactions, 'Цена', clust=True)
 
 # Зависимостей много - но как их анализировать...
 
@@ -107,4 +107,7 @@ get_association_rules(transactions, 'Цена', clust=True)
 transactions["Ценовая категория"] = pd.cut(transactions["Цена"],
                                            bins=[0, 100, 500, 1000, 100000],
                                            labels=["малая цена", "средняя цена", "высокая цена", "очень высокая цена"])
-get_association_rules(transactions, 'Товар', group_by="Ценовая категория", clust=False)
+get_association_rules(transactions, 'Ценовая категория', clust=True)
+
+# Как и в предыдущем случае - можем и убрать нахер
+
