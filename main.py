@@ -2,6 +2,8 @@ import pandas as pd
 from apyori import apriori
 from sklearn.cluster import AgglomerativeClustering
 import numpy as np
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import fpgrowth
 
 from pprint import pprint
 
@@ -23,9 +25,9 @@ def clusterize(rules, rules_list, n):
     # Сортируем правила по кластерам, записывая их в словарь
     clustered_rules = {}
     for i in range(n):
-        clustered_rules[str(i)] = []
+        clustered_rules[i] = []
     for i, labels in enumerate(labels):
-        clustered_rules[str(labels)].append(rules_list[i])
+        clustered_rules[labels].append(rules_list[i])
 
     return clustered_rules
 
@@ -38,7 +40,7 @@ def get_association_rules(data,
                           min_lift=1.5,
                           clust=True,
                           count_clusters=3):
-    data = data.groupby(group_by)[form_list_by].apply(list).values.tolist()
+    data = data.groupby(group_by, observed=False)[form_list_by].apply(list).values.tolist()
     # pprint(data)
 
     # Apply apriori algorithm
@@ -73,6 +75,25 @@ print(transactions.head(10))
 # Видим, что одна транзакция представлена несколькими строками - значит группировать будем по номеру транзакции
 get_association_rules(transactions, 'Товар', clust=True)
 
+# Попробуем модель FP_Growth
+data = transactions.groupby('Номер заказа')["Товар"].apply(list).values.tolist()
+
+
+te = TransactionEncoder()
+te_ary = te.fit_transform(data)
+
+df = pd.DataFrame(te_ary, columns=te.columns_)
+frequent_itemsets = fpgrowth(df, min_support=0.05, use_colnames=True)
+# Посмотрим на все товары, которые покупают часто (в 5% покупок)
+print(frequent_itemsets)
+
+# Выведем только комбинации продуктов, которые часто поупают
+for item in frequent_itemsets.itertuples():
+    if len(item[2]) > 1:
+        print(f"Набор: {', '.join(item.itemsets)} - покупают с частотой {round(item.support, 3)}")
+
+# попробуем найти зависимость по другой модели
+
 # trying with category - "Категория"   ###
 get_association_rules(transactions, 'Категория', clust=True)
 # Всего одно правило - можем просто упомянуть его - а можем и убрать нахер
@@ -81,3 +102,9 @@ get_association_rules(transactions, 'Категория', clust=True)
 get_association_rules(transactions, 'Цена', clust=True)
 
 # Зависимостей много - но как их анализировать...
+
+# Добавим столбец в датафрейм с ценовой категорией
+transactions["Ценовая категория"] = pd.cut(transactions["Цена"],
+                                           bins=[0, 100, 500, 1000, 100000],
+                                           labels=["малая цена", "средняя цена", "высокая цена", "очень высокая цена"])
+get_association_rules(transactions, 'Товар', group_by="Ценовая категория", clust=False)
