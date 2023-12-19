@@ -128,27 +128,10 @@ pprint(confusion_matrix(y_test, y_pred))
 y_pred = svm.predict(X_test)
 print(roc_auc_score(y_test, y_pred))
 
-# Построим график
-# Определим макс. и мин. значения признаков
-x_min, x_max = X_train[:, 0].min() - 1, X_train[:, 0].max() + 1
-y_min, y_max = X_train[:, 1].min() - 1, X_train[:, 1].max() + 1
-
-# Создадим сетку точек для графика
-xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
-
-# Предскажем класс для каждой точки в сетке
-z = svm.predict(np.c_[xx.ravel(), yy.ravel()])
-z = z.reshape(xx.shape)
-
-# Построим сам график
-plt.contourf(xx, yy, z, alpha=0.8)
-plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, edgecolors='k')
-plt.show()
-
 # попробуем объединить 2 алгоритма
 # Используем SVM как фильтр для обработки данных и очистки их от шумов (фильтрации)
-X_train_filtered = svm.transform(X_train)
-X_test_filtered = svm.transform(X_test)
+X_train_filtered = svm.predict(X_train)
+X_test_filtered = svm.predict(X_test)
 
 # Обучим модель на фильтрованных данных
 cl.fit(X_train_filtered, y_train)
