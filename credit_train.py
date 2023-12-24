@@ -142,5 +142,3 @@ pprint(confusion_matrix(y_test, y_pred))
 # Получим ROC_AUC метрику для данной модели
 y_pred = cl.predict_proba(X_test_filtered)[:, 1]
 print(roc_auc_score(y_test, y_pred))
-
-
